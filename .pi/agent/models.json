@@ -1,0 +1,22 @@
+{
+    "providers": {
+        "custom-openai": {
+            "baseUrl": "http://llm:8080/v1",
+            "api": "openai-completions",
+            "apiKey": "llama.cpp",
+            "authHeader": true,
+            "compat": {
+                "supportsDeveloperRole": false,
+                "supportsReasoningEffort": false
+            },
+            "models": [
+                {
+                    "id": "gemma-4-e2b",
+                    "name": "gemma-4-e2b",
+                    "contextWindow": 32768,
+                    "maxTokens": 4096
+                }
+            ]
+        }
+    }
+}
