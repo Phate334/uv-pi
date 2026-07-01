@@ -1,14 +1,12 @@
 # uv-pi
 
-Docker image for running `@earendil-works/pi-coding-agent` with `uv` available in the same container.
+Docker image for running `@earendil-works/pi-coding-agent` with `uv`.
 
-When the container starts in `/workspace`, `docker-entrypoint.sh` runs `uv sync` if `pyproject.toml` exists. The image sets:
+On startup, the image runs `uv sync --no-install-project` when `/workspace/pyproject.toml` exists, then starts `pi`. Python tools launched by pi use `/workspace/.venv` through:
 
 - `UV_PROJECT_ENVIRONMENT=/workspace/.venv`
 - `VIRTUAL_ENV=/workspace/.venv`
 - `PATH=/workspace/.venv/bin:$PATH`
-
-This makes Python scripts and tools launched by pi prefer the virtual environment managed by `uv`.
 
 ## Run
 
@@ -22,6 +20,23 @@ docker run --rm -it \
 
 Replace the image tag with the pi agent version published by the GitHub Actions workflow.
 
+## Compose
+
+`compose.yaml` runs the published image, mounts local pi state from `./.pi`, and installs dependencies from `pyproject.toml` into a persistent `.venv` volume:
+
+```bash
+mkdir -p .pi
+docker compose run --rm pi
+```
+
+The included [./.pi/agent/models.json](./.pi/agent/models.json) points pi at the `llm` service through `http://llm:8080/v1`.
+
+After the `llm` service is healthy, test pi against it with:
+
+```bash
+docker compose run --rm pi pi --print --model custom-openai/gemma-4-e2b "Reply with exactly: pi-ok"
+```
+
 ## Publish
 
 Run the `Publish uv-pi image` workflow manually and enter the pi agent version to install, for example `0.80.3`.
@@ -34,35 +49,4 @@ ghcr.io/phate334/uv-pi:<pi_agent_version>
 
 ## Third-party LLM providers
 
-Pi supports several built-in providers through environment variables, for example `ANTHROPIC_API_KEY`, Azure OpenAI variables such as `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_BASE_URL`, AWS Bedrock variables, and Cloudflare variables.
-
-For arbitrary OpenAI-compatible endpoints, pi documents `~/.pi/agent/models.json` as the supported configuration path. The values in `models.json` can reference environment variables with `$ENV_VAR` or `${ENV_VAR}` syntax:
-
-```json
-{
-  "providers": {
-    "custom-openai": {
-      "baseUrl": "$OPENAI_BASE_URL",
-      "api": "openai-completions",
-      "apiKey": "$OPENAI_API_KEY",
-      "authHeader": true,
-      "models": [
-        {
-          "id": "my-model",
-          "name": "My Model",
-          "contextWindow": 128000,
-          "maxTokens": 4096
-        }
-      ]
-    }
-  }
-}
-```
-
-Then run pi with:
-
-```bash
-pi --provider custom-openai --model my-model
-```
-
-In short: API keys can often be environment variables directly; a generic OpenAI-compatible `baseUrl` and custom model name should be configured through `models.json` or a pi extension, with `models.json` allowed to read those values from environment variables.
+Built-in providers can use their documented environment variables, such as `ANTHROPIC_API_KEY`, Azure OpenAI, AWS Bedrock, and Cloudflare variables. For arbitrary OpenAI-compatible endpoints, configure `~/.pi/agent/models.json`; this repo includes that file under [./.pi/agent/models.json](./.pi/agent/models.json).
