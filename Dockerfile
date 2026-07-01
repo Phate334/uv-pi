@@ -15,8 +15,7 @@ ENV UV_PROJECT_ENVIRONMENT=/workspace/.venv \
     VIRTUAL_ENV=/workspace/.venv \
     PATH=/workspace/.venv/bin:$PATH
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 WORKDIR /workspace
 ENTRYPOINT ["docker-entrypoint.sh"]
