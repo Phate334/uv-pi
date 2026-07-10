@@ -1,52 +1,105 @@
 # uv-pi
 
-Docker image for running `@earendil-works/pi-coding-agent` with `uv`.
+A Docker image for running [Pi Coding Agent](https://github.com/earendil-works/pi) with a Python environment managed by [uv](https://docs.astral.sh/uv/).
 
-On startup, the image runs `uv sync --no-install-project` when `/workspace/pyproject.toml` exists, then starts `pi`. Python tools launched by pi use `/workspace/.venv` through:
+The image includes:
 
-- `UV_PROJECT_ENVIRONMENT=/workspace/.venv`
-- `VIRTUAL_ENV=/workspace/.venv`
-- `PATH=/workspace/.venv/bin:$PATH`
+- Node.js 24
+- Pi Coding Agent
+- `uv` and `uvx`
+- Git, ripgrep, curl, and Bash
 
-## Run
+When `/workspace/pyproject.toml` exists, the container runs `uv sync` before starting Pi. If `uv.lock` exists, it uses `uv sync --locked`.
+
+## Docker
+
+Run Pi inside the current project:
 
 ```bash
 docker run --rm -it \
   -v "$PWD:/workspace" \
-  -v pi-agent-home:/root/.pi/agent \
+  -v uv-pi-venv:/workspace/.venv \
+  -v uv-pi-cache:/root/.cache/uv \
+  -v "$PWD/.pi:/root/.pi" \
   -e ANTHROPIC_API_KEY \
-  ghcr.io/phate334/uv-pi:0.80.3
+  ghcr.io/phate334/uv-pi:0.80.6
 ```
 
-Replace the image tag with the pi agent version published by the GitHub Actions workflow.
+The project is mounted at `/workspace`. Python commands executed by Pi use the environment at `/workspace/.venv`.
 
-## Compose
+To run another command instead of Pi:
 
-`compose.yaml` runs the published image, mounts local pi state from `./.pi`, and installs dependencies from `pyproject.toml` into a persistent `.venv` volume:
+```bash
+docker run --rm -it \
+  -v "$PWD:/workspace" \
+  ghcr.io/phate334/uv-pi:0.80.6 \
+  uv run pytest
+```
+
+## Docker Compose
+
+Copy `compose.yaml` into the root of your project, then run:
 
 ```bash
 mkdir -p .pi
 docker compose run --rm pi
 ```
 
-The included [./.pi/agent/models.json](./.pi/agent/models.json) points pi at the `llm` service through `http://llm:8080/v1`.
+Recommended volume configuration:
 
-After the `llm` service is healthy, test pi against it with:
+```yaml
+services:
+  pi:
+    image: ghcr.io/phate334/uv-pi:0.80.6
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - uv-pi-venv:/workspace/.venv
+      - uv-pi-cache:/root/.cache/uv
+      - ./.pi:/root/.pi
 
-```bash
-docker compose run --rm pi pi --print --model custom-openai/gemma-4-e2b "Reply with exactly: pi-ok"
+volumes:
+  uv-pi-venv:
+  uv-pi-cache:
 ```
 
-## Publish
+The volumes keep the Linux virtual environment and uv download cache outside the host project.
 
-Run the `Publish uv-pi image` workflow manually and enter the pi agent version to install, for example `0.80.3`.
+## Authentication
 
-The workflow builds `linux/amd64` and `linux/arm64` separately, pushes both images by digest, and publishes a multi-arch manifest to:
+Pass the environment variables required by your LLM provider:
+
+```yaml
+services:
+  pi:
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+```
+
+Pi settings, authentication, and sessions are stored under `/root/.pi`.
+
+For custom OpenAI-compatible endpoints, configure:
 
 ```text
-ghcr.io/phate334/uv-pi:<pi_agent_version>
+.pi/agent/models.json
 ```
 
-## Third-party LLM providers
+## Disable automatic sync
 
-Built-in providers can use their documented environment variables, such as `ANTHROPIC_API_KEY`, Azure OpenAI, AWS Bedrock, and Cloudflare variables. For arbitrary OpenAI-compatible endpoints, configure `~/.pi/agent/models.json`; this repo includes that file under [./.pi/agent/models.json](./.pi/agent/models.json).
+To manage the Python environment manually:
+
+```yaml
+services:
+  pi:
+    environment:
+      UV_PI_AUTO_SYNC: "0"
+```
+
+You can then run commands such as:
+
+```bash
+docker compose run --rm pi uv sync
+docker compose run --rm pi uv add pytest
+```

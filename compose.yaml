@@ -1,13 +1,14 @@
 services:
   pi:
-    image: ghcr.io/phate334/uv-pi:0.80.3
+    image: ghcr.io/phate334/uv-pi:0.80.6
     stdin_open: true
     tty: true
+    working_dir: /workspace
     volumes:
-      - ./.pi:/root/.pi
-      - ./pyproject.toml:/workspace/pyproject.toml:ro
+      - .:/workspace
       - uv-pi-venv:/workspace/.venv
       - uv-pi-cache:/root/.cache/uv
+      - ./.pi:/root/.pi
 
   llm:
     image: ghcr.io/ggml-org/llama.cpp:server-b9853

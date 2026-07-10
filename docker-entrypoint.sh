@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f pyproject.toml ]]; then
+if [[ "${UV_PI_AUTO_SYNC:-1}" == "1" && -f pyproject.toml ]]; then
     sync_args=()
 
     if [[ -f uv.lock ]]; then
         sync_args+=(--locked)
-    fi
-
-    # src layout 專案需要安裝自身，才能正常 import package。
-    if [[ ! -d src ]]; then
-        sync_args+=(--no-install-project)
     fi
 
     uv sync "${sync_args[@]}"
