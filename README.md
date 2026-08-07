@@ -10,8 +10,6 @@ The image includes Node.js 24, Pi Coding Agent, `uv`, `uvx`, Git, ripgrep, curl,
 docker run --rm -it \
   -v "$PWD:/workspace" \
   -v uv-pi-venv:/workspace/.venv \
-  -v uv-pi-cache:/root/.cache/uv \
-  -v "$PWD/.pi:/root/.pi" \
   -e OPENAI_API_KEY \
   ghcr.io/phate334/uv-pi:v0.84.1
 ```
@@ -25,11 +23,11 @@ mkdir -p .pi/agent
 docker compose run --rm pi
 ```
 
-The Compose file keeps the Linux virtual environment and uv cache in named volumes. Set `UV_PI_AUTO_SYNC=0` when the Python environment should be managed manually.
+The Compose file persists only the Linux virtual environment; the uv cache is ephemeral, so dependencies may be downloaded again when the container is recreated. Set `UV_PI_AUTO_SYNC=0` to manage the Python environment manually.
 
 ## OpenAI-compatible API
 
-Pi loads custom providers from `~/.pi/agent/models.json`. This image mounts the project `.pi` directory at `/root/.pi`, so create `.pi/agent/models.json` with a configuration like:
+Pi loads custom providers from `.pi/agent/models.json`. The image sets `PI_CODING_AGENT_DIR=/workspace/.pi/agent`, so the project `.pi` directory is used directly. Create `.pi/agent/models.json` with a configuration like:
 
 ```json
 {

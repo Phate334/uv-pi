@@ -24,6 +24,7 @@ RUN npm install -g --ignore-scripts \
 
 ENV UV_PROJECT_ENVIRONMENT=/workspace/.venv \
     VIRTUAL_ENV=/workspace/.venv \
+    PI_CODING_AGENT_DIR=/workspace/.pi/agent \
     PATH=/workspace/.venv/bin:$PATH
 
 COPY --chmod=755 docker-entrypoint.sh \

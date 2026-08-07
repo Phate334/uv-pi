@@ -3,19 +3,14 @@ services:
     image: ghcr.io/phate334/uv-pi:v0.84.1
     stdin_open: true
     tty: true
-    working_dir: /workspace
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - .:/workspace
       - uv-pi-venv:/workspace/.venv
-      - uv-pi-cache:/root/.cache/uv
-      - ./.pi:/root/.pi
 
   llm:
     image: ghcr.io/ggml-org/llama.cpp:server-b9853
-    ports:
-      - "8080:8080"
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
       LLAMA_ARG_HF_REPO: unsloth/gemma-4-E2B-it-qat-GGUF:UD-Q4_K_XL
@@ -30,5 +25,4 @@ services:
 
 volumes:
   uv-pi-venv:
-  uv-pi-cache:
   llm-cache:
