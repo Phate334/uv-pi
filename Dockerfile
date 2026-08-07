@@ -5,7 +5,7 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
 FROM node:${NODE_VERSION}-trixie-slim
 
-ARG PI_AGENT_VERSION=0.80.6
+ARG PI_AGENT_VERSION=0.84.1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

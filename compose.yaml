@@ -1,9 +1,11 @@
 services:
   pi:
-    image: ghcr.io/phate334/uv-pi:0.80.6
+    image: ghcr.io/phate334/uv-pi:v0.84.1
     stdin_open: true
     tty: true
     working_dir: /workspace
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - .:/workspace
       - uv-pi-venv:/workspace/.venv
