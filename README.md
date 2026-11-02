@@ -11,7 +11,7 @@ docker run --rm -it \
   -v "$PWD:/workspace" \
   -v uv-pi-venv:/workspace/.venv \
   -e OPENAI_API_KEY \
-  ghcr.io/phate334/uv-pi:v0.84.1
+  ghcr.io/phate334/uv-pi:v1.5.0
 ```
 
 ## Docker Compose

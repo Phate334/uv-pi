@@ -1,6 +1,6 @@
 services:
   pi:
-    image: ghcr.io/phate334/uv-pi:v0.84.1
+    image: ghcr.io/phate334/uv-pi:v1.5.0
     stdin_open: true
     tty: true
     environment:
@@ -10,7 +10,7 @@ services:
       - uv-pi-venv:/workspace/.venv
 
   llm:
-    image: ghcr.io/ggml-org/llama.cpp:server-b9853
+    image: ghcr.io/ggml-org/llama.cpp:server-b12033
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
       LLAMA_ARG_HF_REPO: unsloth/gemma-4-E2B-it-qat-GGUF:UD-Q4_K_XL
